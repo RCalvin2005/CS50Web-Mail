@@ -15,6 +15,9 @@
     </div>
 
     <div id="compose-view">
+
+        <div id="error-alert" class="alert alert-danger"></div>
+
         <h3>New Email</h3>
         <form id="compose-form">
             <div class="form-group">
@@ -26,8 +29,8 @@
             <div class="form-group">
                 <input class="form-control" id="compose-subject" placeholder="Subject">
             </div>
-            <textarea class="form-control" id="compose-body" placeholder="Body"></textarea>
-            <input type="submit" class="btn btn-primary"/>
+            <textarea class="form-control mb-3" id="compose-body" placeholder="Body"></textarea>
+            <input type="submit" class="btn btn-primary mb-3"/>
         </form>
     </div>
 {% endblock %}
