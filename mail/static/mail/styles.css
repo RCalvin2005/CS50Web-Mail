@@ -1,3 +1,7 @@
 textarea {
     min-height: 400px;
 }
+
+.fw-semibold {
+    font-weight: 600;
+}

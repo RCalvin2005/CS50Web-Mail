@@ -37,6 +37,35 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+  // Query API for latest emails
+  fetch(`/emails/${mailbox}`)
+  .then(response => response.json())
+  .then(emails => {
+
+      const emails_view = document.querySelector('#emails-view');
+
+      // Create div for each mail
+      emails.forEach(email => {
+        const element = document.createElement('div');
+        emails_view.append(element);
+        // https://stackoverflow.com/questions/18269286/shorthand-for-if-else-statement
+        element.outerHTML = `
+          <div class="row border rounded p-2 mx-0 ${email.read ? 'bg-light' : 'fw-semibold'}">
+            <div class="col">
+              ${email.sender}
+            </div>
+            <div class="col-7 text-truncate px-0">
+              ${email.subject}
+              <span class="text-muted font-weight-normal"> - ${email.body}</span>
+            </div>
+            <div class="col small d-flex align-items-center justify-content-end ${!email.read && 'fw-semibold'}">
+              ${email.timestamp}
+            </div>
+          </div>
+        `;
+      });
+  });
 }
 
 function send_mail() {
