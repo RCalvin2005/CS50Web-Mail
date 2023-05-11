@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
   document.querySelector('#compose').addEventListener('click', compose_email);
 
-  // Sending mail event listener
-  document.querySelector('#compose-form').onsubmit = send_mail;
+  // Sending email event listener
+  document.querySelector('#compose-form').onsubmit = send_email;
 
   // By default, load the inbox
   load_mailbox('inbox');
@@ -18,6 +18,7 @@ function compose_email() {
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
+  document.querySelector('#read-view').style.display = 'none';
 
   // Hide error alert and clear out existing alert
   document.querySelector('#error-alert').style.display = 'none';
@@ -34,6 +35,7 @@ function load_mailbox(mailbox) {
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#read-view').style.display = 'none';
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
@@ -48,10 +50,10 @@ function load_mailbox(mailbox) {
       // Create div for each mail
       emails.forEach(email => {
         const element = document.createElement('div');
-        emails_view.append(element);
+
         // https://stackoverflow.com/questions/18269286/shorthand-for-if-else-statement
-        element.outerHTML = `
-          <div class="row border rounded p-2 mx-0 ${email.read ? 'bg-light' : 'fw-semibold'}">
+        element.innerHTML = `
+          <div class="row email-preview border rounded p-2 mx-0 ${email.read ? 'bg-light' : 'fw-semibold'}" data-email-id="${email.id}">
             <div class="col">
               ${email.sender}
             </div>
@@ -63,12 +65,19 @@ function load_mailbox(mailbox) {
               ${email.timestamp}
             </div>
           </div>
-        `;
+        `;        
+        
+        // Event listener to read email
+        element.addEventListener('click', () => {
+          read_email(email.id)
+        });
+
+        emails_view.append(element);
       });
   });
 }
 
-function send_mail() {
+function send_email() {
 
   // Send mail to server
   fetch('/emails', {
@@ -109,4 +118,48 @@ function send_mail() {
 
   // Prevent default form submission
   return false;
+}
+
+function read_email(email_id) {
+
+  // Show read view and hide other views
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#read-view').style.display = 'block';
+
+  // Reset content of email
+  document.querySelector('#read-view').innerHTML = '';
+
+  // Send request to server to get specific email
+  fetch(`/emails/${email_id}`)
+  .then(response => response.json())
+  .then(email => {
+
+      // Create email display
+      const element = document.createElement('div');
+      element.innerHTML = `
+        <h3>${email.subject}</h3>
+        <div class="row mx-0 justify-content-between">
+          <div class="fw-semibold">${email.sender}</div>
+          <div class="text-right small text-muted">${email.timestamp}</div>
+        </div>
+        <div class="row mx-0 small text-muted">
+          to ${email.recipients.join(', ')}
+        </div>
+        <div class="row mx-0" style="white-space: pre-line;">
+          ${email.body}
+        </div>
+      `;
+      // https://stackoverflow.com/questions/61768544/n-is-not-rendering-the-text-in-new-line
+
+      document.querySelector("#read-view").append(element);
+
+      // Mark email as read
+      fetch(`/emails/${email_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            read: true
+        })
+      })
+  });
 }

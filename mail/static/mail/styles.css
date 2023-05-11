@@ -5,3 +5,9 @@ textarea {
 .fw-semibold {
     font-weight: 600;
 }
+
+.email-preview:hover {
+    cursor: pointer;
+    border-color: #C0C0C0 !important;
+    box-shadow: 0 1px 3px #b9b9b9;
+}
