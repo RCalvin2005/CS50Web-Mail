@@ -69,7 +69,7 @@ function load_mailbox(mailbox) {
         
         // Event listener to read email
         element.addEventListener('click', () => {
-          read_email(email.id)
+          read_email(email.id, mailbox)
         });
 
         emails_view.append(element);
@@ -111,8 +111,6 @@ function send_email() {
 
       // Load sent mailbox if sent successfully
       load_mailbox('sent');
-      
-      window.alert(result.message);
     }
   });
 
@@ -120,7 +118,7 @@ function send_email() {
   return false;
 }
 
-function read_email(email_id) {
+function read_email(email_id, mailbox) {
 
   // Show read view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
@@ -134,6 +132,23 @@ function read_email(email_id) {
   fetch(`/emails/${email_id}`)
   .then(response => response.json())
   .then(email => {
+
+      // Create archive/unarchive button
+      if (mailbox !== 'sent') {
+        button = document.createElement('div');
+        if (mailbox === 'inbox') {
+          button.innerHTML = `
+            <button class="btn btn-sm btn-outline-primary mb-2" id="archive">Archive</button>
+          `;
+        }
+        else {
+          button.innerHTML = `
+            <button class="btn btn-sm btn-outline-primary mb-2" id="unarchive">Unarchive</button>
+          `;
+        }
+        button.addEventListener('click', () => {archive_email(email)});
+        document.querySelector("#read-view").append(button);
+      }
 
       // Create email display
       const element = document.createElement('div');
@@ -161,5 +176,23 @@ function read_email(email_id) {
             read: true
         })
       })
+  });
+}
+
+function archive_email(email) {
+
+  // Send request to archive or unarchive the given email
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        archived: email.archived ? false : true
+    })
+  })
+  .then(() => {
+
+    // Load user inbox after archive/unarchive
+    load_mailbox('inbox');
+    
+    console.log(email.archived ? 'Email has been unarchived' : 'Email has been archived');  
   });
 }
